@@ -1,7 +1,12 @@
 """Campus Lost & Found - web app. Run: python server.py  ->  http://localhost:8000  (Python 3.8+, no packages needed)"""
 import http.server, json, os, hashlib, secrets, time, base64, re, threading
 from urllib.parse import urlparse, parse_qs
-import psycopg2, psycopg2.extras
+import sys
+try:
+    import psycopg2, psycopg2.extras
+    IMPERR = ''
+except Exception as e:
+    psycopg2 = None; IMPERR = str(e)
 SEC = '; Secure'
 LOCK = threading.Lock(); FAILS = {}
 class R:
@@ -11,6 +16,7 @@ class R:
 class DB:
     c = None
     def execute(s, sql, a=()):
+        if psycopg2 is None: raise RuntimeError('psycopg2 missing: ' + IMPERR)
         sql = sql.replace('?', '%s'); ret = bool(re.match(r'\s*INSERT INTO (items|claims)', sql))
         if ret: sql += ' RETURNING id'
         for attempt in (1, 2):
@@ -69,12 +75,22 @@ class H(http.server.BaseHTTPRequestHandler):
         if not s: return None
         u = db.execute("SELECT * FROM users WHERE id=?", (s['uid'],)).fetchone()
         return dict(u) if u else None
-    def do_GET(self): self.go('GET')
-    def do_POST(self): self.go('POST')
-    def do_DELETE(self): self.go('DELETE')
+    def do_GET(self): self.safe('GET')
+    def do_POST(self): self.safe('POST')
+    def do_DELETE(self): self.safe('DELETE')
+    def safe(self, m):
+        try: self.go(m)
+        except Exception as e:
+            try: self.out(500, {'error': 'Server error: %s' % e})
+            except Exception: pass
     def go(self, method):
         path = self.path.split('?')[0]; q = parse_qs(urlparse(self.path).query)
         if 'r' in q: path = '/api/' + q['r'][0]
+        if path == '/api/ping':
+            info = {'python': sys.version[:6], 'psycopg2': 'ok' if psycopg2 else IMPERR, 'db_env': bool(os.environ.get('DATABASE_URL') or os.environ.get('POSTGRES_URL'))}
+            try: init(); info['db'] = 'ok'
+            except Exception as e: info['db'] = str(e)[:300]
+            return self.out(200, info)
         if method == 'GET' and not path.startswith('/api/'):
             f = os.path.join(ROOT, 'static', 'index.html' if path == '/' else os.path.basename(path))
             if not os.path.isfile(f): return self.out(404, {'error': 'Not found'})
