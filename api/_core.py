@@ -1,4 +1,4 @@
-"""Campus Lost & Found - web app. Run: python server.py  ->  http://localhost:8000  (Python 3.8+, no packages needed)"""
+"""Campus Lost & Found - web app (Vercel + Postgres)."""
 import http.server, json, os, hashlib, secrets, time, base64, re, threading
 from urllib.parse import urlparse, parse_qs
 import sys
@@ -28,7 +28,8 @@ class DB:
                 s.c = None
                 if attempt == 2: raise
             except Exception:
-                s.c.rollback(); raise
+                if s.c: s.c.rollback()
+                raise
     def commit(s): s.c.commit()
 db = DB()
 INIT = []
@@ -57,6 +58,16 @@ def save_img(data):
     if len(raw) > 2_500_000 or raw[:2] != b'\xff\xd8': return None
     n = secrets.token_hex(16) + '.jpg'
     db.execute("INSERT INTO files VALUES(?,?)", (n, psycopg2.Binary(raw))); return n
+BAD_TOKENS = {'sex','sexy','porn','porno','nude','nudes','nsfw','xxx','dick','cock','penis','vagina','pussy','boob','boobs','fuck','fucking','shit','bitch','asshole','slut','whore','rape','condom','condum','condoms','dildo','dildos','vibrator','lund','chut','gaand','harami','kutta','kamina','randi','bhosdi','madarchod','behenchod'}
+BAD_PARTS = ('dildo', 'condom', 'condum', 'vibrator', 'porn', 'fuck', 'nigg')
+CATS = ('Wallet', 'Electronics', 'Books', 'ID Card', 'Bag', 'Other')
+def bad_text(label, v, minlen=2):
+    """Returns an error string if v is not a sensible item description, else None."""
+    t = toks(v)
+    if len(v) < minlen or not re.search(r'[^\W\d_]', v): return '%s must be a real word (letters, at least %d characters).' % (label, minlen)
+    if re.search(r'(.)\1{3,}', v) or not re.match(r"^[\w \-'&.,()/+#:]+$", v): return '%s contains invalid characters or looks like random text.' % label
+    if any(x in BAD_TOKENS for x in t) or any(b in x for x in t for b in BAD_PARTS): return '%s contains inappropriate words. Only genuine lost items can be reported.' % label
+    return None
 def rows(sql, *a): return [dict(r) for r in db.execute(sql, a)]
 def isadm(u): return u and u['role'] in ('admin', 'owner')
 
@@ -91,10 +102,6 @@ class H(http.server.BaseHTTPRequestHandler):
             try: init(); info['db'] = 'ok'
             except Exception as e: info['db'] = str(e)[:300]
             return self.out(200, info)
-        if method == 'GET' and not path.startswith('/api/'):
-            f = os.path.join(ROOT, 'static', 'index.html' if path == '/' else os.path.basename(path))
-            if not os.path.isfile(f): return self.out(404, {'error': 'Not found'})
-            return self.out(200, raw=open(f, 'rb').read(), ctype=mimetypes.guess_type(f)[0] or 'text/plain')
         body = {}
         if method == 'POST':
             try: body = json.loads(self.rfile.read(int(self.headers.get('Content-Length', 0))) or b'{}')
@@ -139,11 +146,32 @@ class H(http.server.BaseHTTPRequestHandler):
             return self.out(200, raw=bytes(fr['data']), ctype='image/jpeg') if fr else self.out(404, {'error': 'Not found'})
         if P[0] == 'items':
             if m == 'GET': return self.out(200, rows("SELECT id,name,category,location,date,finder,status,photo FROM items ORDER BY id"))
+            if m == 'DELETE':   # admin removes a wrong / inappropriate report completely
+                if not isadm(u): return self.out(403, {'error': 'Admins only.'})
+                try: iid = int(P[1])
+                except Exception: return self.out(400, {'error': 'Bad item id.'})
+                it = db.execute("SELECT * FROM items WHERE id=?", (iid,)).fetchone()
+                if not it: return self.out(404, {'error': 'Item not found.'})
+                names = [it['photo']]
+                for c in db.execute("SELECT cnic,selfie,extra FROM claims WHERE item_id=?", (iid,)): names += [c['cnic'], c['selfie'], c['extra']]
+                db.execute("DELETE FROM claims WHERE item_id=?", (iid,)); db.execute("DELETE FROM items WHERE id=?", (iid,))
+                for n in names:
+                    if n: db.execute("DELETE FROM files WHERE name=?", (n,))
+                db.commit(); return self.out(200, {'ok': 1})
+            if m != 'POST': return self.out(405, {'error': 'Method not allowed.'})
             need = [clean(b.get(k)) for k in ('name', 'location', 'color', 'brand', 'marks')]
             if not all(need): return self.out(400, {'error': 'Please fill in every field, including the private details.'})
-            ph = save_img(b['photo']) if b.get('photo') else None
+            for lbl, v, ml in zip(('Item name', 'Location', 'Color', 'Brand / model', 'Marks / contents'), need, (3, 2, 2, 2, 2)):
+                e = bad_text(lbl, v, ml)
+                if e: return self.out(400, {'error': e})
+            cat = clean(b.get('category'), 30)
+            if cat not in CATS: return self.out(400, {'error': 'Please choose a valid category.'})
+            ph = None
+            if b.get('photo'):
+                ph = save_img(b['photo'])
+                if not ph: return self.out(400, {'error': 'Invalid photo. Upload a normal JPG/PNG picture under 2.5 MB, or leave it empty.'})
             c = db.execute("INSERT INTO items(name,category,location,date,finder,status,color,brand,marks,photo) VALUES(?,?,?,?,?,'FOUND',?,?,?,?)",
-                (need[0], clean(b.get('category'), 30), need[1], clean(b.get('date'), 10), u['full'], need[2], need[3], need[4], ph)); db.commit()
+                (need[0], cat, need[1], clean(b.get('date'), 10), u['full'], need[2], need[3], need[4], ph)); db.commit()
             return self.out(200, {'id': c.lastrowid})
         if P[0] == 'claims':
             if m == 'POST' and len(P) == 1:

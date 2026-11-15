@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Campus Lost & Found</title>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#10423c"><title>Campus Lost & Found</title>
 <style>
 *{box-sizing:border-box;font-family:'Inter','Segoe UI','Noto Sans',sans-serif}body{margin:0;background:#f3f6f5;color:#1d2a27;font-size:14px}
 button,input,select{font-size:14px}.hide{display:none!important}
@@ -24,7 +24,34 @@ table{width:100%;border-collapse:collapse}th{text-align:left;color:#5b6663;paddi
 #auth{display:flex;min-height:100vh}#abrand{flex:4;background:linear-gradient(135deg,#10423c,#07211e);padding:48px;display:flex;flex-direction:column;justify-content:center;max-width:520px}
 #abrand h1{color:#fff;font-size:40px}#abrand p{color:#cfe3de;font-size:16px;line-height:1.5}#abrand li{color:#9fc9bf;list-style:none;padding:4px 0}#abrand ul{padding:0}
 #aright{flex:5;display:flex;align-items:center;justify-content:center;padding:32px}#aright .card{width:100%;max-width:460px;padding:28px}
-@media(max-width:900px){#app{flex-direction:column}#side{width:auto;height:auto;position:static;flex-direction:row;flex-wrap:wrap}.ubox{margin:0}.g2,.g3{grid-template-columns:1fr}#abrand{display:none}main{padding:18px}}
+@media(max-width:900px){#app{flex-direction:column}.g2,.g3{grid-template-columns:1fr}#abrand{display:none}main{padding:18px}#aright{padding:16px}}
+@media(max-width:700px){
+html,body{overflow-x:hidden}body{-webkit-text-size-adjust:100%}
+input,select,button{font-size:16px}input,select{min-height:44px}input[type=checkbox]{min-height:0;width:20px;height:20px}
+#side{width:100%;height:auto;position:sticky;top:0;z-index:5;padding:10px 12px;flex-direction:row;flex-wrap:wrap;align-items:center;gap:0 8px}
+.brand{font-size:11px}.brand2{font-size:18px;margin:0}.brand,.brand2{display:inline-block}
+.ubox{margin:0 0 0 auto;display:flex;align-items:center;gap:8px;padding:5px 8px;font-size:0;border-radius:10px}
+.ubox b{display:inline;font-size:13px;margin:0;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.logout{width:auto;margin:0;padding:6px 12px;font-size:13px}
+#nav{order:3;width:100%;display:flex;gap:4px;overflow-x:auto;margin-top:8px;padding-bottom:2px;-webkit-overflow-scrolling:touch;scrollbar-width:none}#nav::-webkit-scrollbar{display:none}
+.nav{flex:0 0 auto;white-space:nowrap;padding:10px 14px;font-size:14px;border-left:0;border-bottom:3px solid transparent;border-radius:8px 8px 0 0}.nav.on{border-bottom-color:#5eead4}
+main{padding:14px 12px 28px}h1{font-size:24px}.sub{margin-bottom:12px}.card{padding:14px;border-radius:14px}
+.row{flex-wrap:wrap}.row>*{flex:1 1 100%}
+.btn{min-height:44px}.btn.sm{min-height:40px;padding:8px 14px}.link{min-height:44px}
+.stat b{font-size:22px}.grid.g3{gap:10px}
+.proofs img{width:100%;height:auto;max-height:240px}.proofs figure{width:100%}
+#abrand{display:none}#auth{min-height:100vh;background:linear-gradient(135deg,#10423c,#07211e)}#aright{padding:14px}#aright .card{padding:20px}
+.code{font-size:22px}
+/* tables turn into stacked cards */
+table{display:block}table tbody,table tr,table td{display:block;width:100%}
+table tr:has(th){display:none}
+table tr{border:1px solid #e1e8e5;border-radius:12px;padding:8px 12px;margin-bottom:10px;background:#fff}
+tr.sel{border-color:#0f6b5a;background:#eaf5f2}tr.sel td{background:transparent}
+td{border-bottom:1px solid #eef2f0;padding:8px 0;display:flex!important;justify-content:space-between;gap:12px;align-items:center;text-align:right;word-break:break-word}
+td:last-child{border-bottom:0}td:empty{display:none!important}
+td[data-label]::before{content:attr(data-label);font-weight:700;color:#5b6663;text-align:left;flex:0 0 38%;font-size:12px;text-transform:uppercase;letter-spacing:.3px}
+td .btn{margin:2px 0 2px 6px}td input[type=text],td input:not([type]){max-width:100%!important}
+}
 </style></head><body>
 <div id="auth" class="hide"><div id="abrand"><div class="brand">CAMPUS</div><h1>Lost &amp; Found</h1><p>Report what you find. Claim what you lost.<br>Every claim is verified by an admin.</p>
 <ul><li>•&nbsp; Users search items, report finds and submit claims</li><li>•&nbsp; Admins review claims and approve or reject them</li><li>•&nbsp; Owners are checked by color, brand, marks and ID proof</li></ul></div>
@@ -73,12 +100,15 @@ async history(){claims=await api('claims');const H=claims.filter(c=>c.status!=='
 async users(){const U=await api('users');$('#main').innerHTML=head('Users','See every account, create admins and manage roles.')+`<div class="grid g3" style="margin-bottom:16px"><div class="stat"><b>${U.filter(u=>u.role==='user').length}</b><span class="muted">Registered users</span></div><div class="stat"><b>${U.filter(u=>u.role!=='user').length}</b><span class="muted">Admins (including owner)</span></div><div class="stat"><b>${U.length}</b><span class="muted">Total accounts</span></div></div><div class="grid g2"><div class="card"><h2>All accounts</h2><table><tr><th>Name</th><th>Username</th><th>Contact</th><th>Role</th><th>Claims</th><th></th></tr>${U.map(u=>`<tr><td>${E(u.full)}</td><td>${E(u.username)}</td><td>${E(u.contact)||'-'}</td><td>${pill(u.role.toUpperCase())}</td><td>${u.n}</td><td>${u.role==='owner'||u.username===me.username?'':`<button class="btn out sm" onclick="role('${u.username}','${u.role==='user'?'admin':'user'}')">${u.role==='user'?'Make admin':'Make user'}</button> <button class="btn dng sm" onclick="delUser('${u.username}')">Delete</button>`}</td></tr>`).join('')}</table><div id="um" class="msg hide"></div></div><div class="card"><h2>Create an admin account</h2>${fld('nf','Full name')}${fld('nu','Username')}${fld('nc','Contact','optional')}${fld('np','Password','At least 6 characters','password')}${fld('np2','Confirm password','','password')}<button class="btn full" onclick="newAdmin()">Create admin account</button><div id="nm" class="msg hide"></div></div></div>`}};
 const tk=s=>(s.toLowerCase().match(/[a-z0-9]+/g)||[]),fz=(a,b)=>{a=a.trim().toLowerCase();b=b.trim().toLowerCase();if(!a||!b)return false;if(a==b||b.includes(a)||a.includes(b))return true;return tk(a).some(t=>t.length>=3&&tk(b).includes(t))};
 function list(){const q=$('#q').value.trim().toLowerCase(),c=$('#cat').value,s=$('#srt').value;let r=items.filter(i=>(!q||i.name.toLowerCase().includes(q)||String(i.id)===q)&&(c==='All categories'||i.category===c));r.sort((a,b)=>s==='id'?a.id-b.id:String(a[s]).localeCompare(String(b[s])));
-$('#rc').textContent=`Results (${r.length} found)`;$('#rl').innerHTML=r.length?`<table><tr><th></th><th>ID</th><th>Item</th><th>Location</th><th>Date</th><th>Status</th><th></th></tr>${r.map(i=>`<tr><td>${i.photo?`<img class="thumb" src="/api/index?r=file/${i.photo}" onclick="zoom(this.src)">`:''}</td><td>${idS(i.id)}</td><td>${E(i.name)}</td><td>${E(i.location)}</td><td>${E(i.date)}</td><td>${pill(i.status)}</td><td>${i.status==='FOUND'&&me.role==='user'?`<button class="btn sm" onclick="fillClaim(${i.id})">Claim</button>`:''}</td></tr>`).join('')}</table>`:'<div class="empty">No items found.<br>Try another keyword or category.</div>'}
+$('#rc').textContent=`Results (${r.length} found)`;$('#rl').innerHTML=r.length?`<table><tr><th></th><th>ID</th><th>Item</th><th>Location</th><th>Date</th><th>Status</th><th></th></tr>${r.map(i=>`<tr><td>${i.photo?`<img class="thumb" src="/api/index?r=file/${i.photo}" onclick="zoom(this.src)">`:''}</td><td>${idS(i.id)}</td><td>${E(i.name)}</td><td>${E(i.location)}</td><td>${E(i.date)}</td><td>${pill(i.status)}</td><td>${i.status==='FOUND'&&me.role==='user'?`<button class="btn sm" onclick="fillClaim(${i.id})">Claim</button>`:''}${adm()?`<button class="btn dng sm" onclick="delItem(${i.id})">Delete</button>`:''}</td></tr>`).join('')}</table>`:'<div class="empty">No items found.<br>Try another keyword or category.</div>'}
+async function delItem(id){if(!confirm('Delete item '+idS(id)+' permanently?\nIts photo and any claims on it will also be removed. This cannot be undone.'))return;try{await api('items/'+id,'DELETE');items=await api('items');list()}catch(e){alert(e.message)}}
 async function addItem(){try{const d=await api('items','POST',{name:$('#an').value,category:$('#ac').value,date:$('#ad').value,location:$('#al').value,color:$('#acl').value,brand:$('#ab').value,marks:$('#am').value,photo:await photo($('#ap').files[0])});msg('am2','Item saved with ID '+idS(d.id)+'.',1);['an','al','acl','ab','am','ap'].forEach(i=>$('#'+i).value='')}catch(e){msg('am2',e.message)}}
 async function decide(id,ok,score,hasId){if(ok){if(!hasId&&!confirm('This claim has no ID photo. Approve anyway?'))return;if(score<2&&!confirm(`Only ${score} of 3 answers match. Approve anyway?`))return}const note=ok?'':prompt('Reason for rejection (shown to the claimant):','Details did not match.');if(!ok&&note===null)return;try{await api(`claims/${id}/decide`,'POST',{approve:ok,note});views.admin()}catch(e){alert(e.message)}}
 async function handover(id){try{await api(`claims/${id}/handover`,'POST',{code:$('#h'+id).value,id_checked:$('#k'+id).checked});views.admin()}catch(e){msg('hm',e.message)}}
 const um=async(f,t)=>{try{await f();views.users()}catch(e){msg('um',e.message)}};
 const role=(u,r)=>um(()=>api('users/'+u,'POST',{role:r})),delUser=u=>confirm(`Delete the account '${u}'? This cannot be undone.`)&&um(()=>api('users/'+u,'DELETE'));
 async function newAdmin(){try{await api('users','POST',{full:$('#nf').value,username:$('#nu').value,contact:$('#nc').value,password:$('#np').value,password2:$('#np2').value});views.users()}catch(e){msg('nm',e.message)}}
+function lbl(t){const hs=[...t.querySelectorAll('tr')].find(r=>r.querySelector('th'));if(!hs)return;const h=[...hs.children].map(x=>x.textContent.trim());t.querySelectorAll('tr').forEach(r=>{if(r.querySelector('th'))return;[...r.children].forEach((c,i)=>{if(h[i])c.dataset.label=h[i];else c.removeAttribute('data-label')})})}
+new MutationObserver(()=>document.querySelectorAll('#main table').forEach(lbl)).observe(document.querySelector('#main'),{childList:true,subtree:true});
 boot();
 </script></body></html>
