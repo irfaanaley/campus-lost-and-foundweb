@@ -22,9 +22,11 @@ if _pg is not None:
     _pg.connect = _connect
 
 class handler(H):
-    def go(self, method):
+    # route() runs inside the global LOCK, so resetting the connection here can never
+    # cut off another request that is still using it.
+    def route(self, m, p, b):
         try:
             if _core.db.c is not None: _core.db.c.close()
         except Exception: pass
         _core.db.c = None
-        return super().go(method)
+        return super().route(m, p, b)
