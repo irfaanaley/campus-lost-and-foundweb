@@ -288,6 +288,7 @@ class H(http.server.BaseHTTPRequestHandler):
                 if not ph: return self.out(400, {'error': 'Invalid photo. Upload a normal JPG/PNG picture under 2.5 MB, or leave it empty.'})
             c = db.execute("INSERT INTO lost(uid,name,description,category,location,date,contact,photo,status,created) VALUES(?,?,?,?,?,?,?,?,'OPEN',?)", (u['id'], f['name'], f['description'], f['category'], f['location'], f['date'], ct, ph, now()))
             log('%s reported a lost item: %s' % (u['full'], f['name']))
+            notify_admins('item', 'New lost report by %s: %s (%s, %s). Contact: %s' % (u['full'], f['name'], f['category'], f['location'], ct))
             hits = [i for i in rows("SELECT id,name,location,uid,finder FROM items WHERE status='FOUND'") if fuzzy(f['name'], i['name']) and not self.own_item(i, u)]
             if hits: notify(u['id'], 'match', 'Good news: %d found item(s) may match "%s", e.g. %s (ID %s). Check Search Item.' % (len(hits), f['name'], hits[0]['name'], sid(hits[0]['id'])))
             db.commit(); return self.out(200, {'id': c.lastrowid, 'matches': len(hits)})
