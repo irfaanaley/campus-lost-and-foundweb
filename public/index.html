@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><link rel="icon" type="image/png" href="/emblem.png"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#10423c"><title>Campus Lost & Found</title><style>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#10423c"><title>Campus Lost & Found</title><style>
 *{box-sizing:border-box;font-family:'Inter','Segoe UI','Noto Sans',sans-serif}body{margin:0;background:#f3f6f5;color:#1d2a27;font-size:14px}
 button,input,select{font-size:14px}.hide{display:none!important}
 #app{display:flex;min-height:100vh}#side{width:250px;background:linear-gradient(#10423c,#0a2a26);padding:26px 16px 16px;display:flex;flex-direction:column;gap:6px;position:sticky;top:0;height:100vh}
@@ -20,7 +20,6 @@ table{width:100%;border-collapse:collapse}th{text-align:left;color:#5b6663;paddi
 .inner{background:#f7faf9;border:1px solid #e1e8e5;border-radius:12px;padding:16px;margin-top:14px}.thumb{width:54px;height:54px;object-fit:cover;border-radius:8px;border:1px solid #e1e8e5;background:#eef2f0}
 .proofs{display:flex;gap:12px;flex-wrap:wrap}.proofs figure{margin:0;font-size:12px;color:#5b6663}.proofs img{width:190px;height:130px;object-fit:cover;border-radius:10px;border:1px solid #d3dbd8;cursor:zoom-in;display:block}
 .code{font-size:26px;font-weight:800;letter-spacing:4px;color:#0f6b5a}#zoom{position:fixed;inset:0;background:#000c;display:flex;align-items:center;justify-content:center;z-index:9;cursor:zoom-out}#zoom img{max-width:92vw;max-height:92vh;border-radius:8px}
-.alogo{width:100%;max-width:440px;border-radius:18px;margin-bottom:22px;box-shadow:0 10px 30px #0006}.slogo{width:100%;height:auto;flex:none;border-radius:12px;margin-bottom:16px;display:block}.semb{display:none;flex:none;width:52px;height:52px;object-fit:cover;border-radius:12px;margin:0 auto 12px}.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 #auth{display:flex;min-height:100vh}#abrand{flex:4;background:linear-gradient(135deg,#10423c,#07211e);padding:48px;display:flex;flex-direction:column;justify-content:center;max-width:520px}
 #abrand h1{color:#fff;font-size:40px}#abrand p{color:#cfe3de;font-size:16px;line-height:1.5}#abrand li{color:#9fc9bf;list-style:none;padding:4px 0}#abrand ul{padding:0}
 #aright{flex:5;display:flex;align-items:center;justify-content:center;padding:32px}#aright .card{width:100%;max-width:460px;padding:28px}
@@ -84,7 +83,7 @@ details{border-bottom:1px solid #e1e8e5;padding:11px 0}summary{cursor:pointer;fo
 html,body{overflow-x:hidden}body{-webkit-text-size-adjust:100%}
 input,select,button,textarea{font-size:16px}input,select{min-height:44px}input[type=checkbox]{min-height:0;width:20px;height:20px}
 #side{width:108px;flex:0 0 108px;height:100vh;position:sticky;top:0;padding:14px 6px 10px;flex-direction:column;align-items:stretch;gap:4px}
-.slogo{display:none}.semb{display:block}.brand{font-size:10px;letter-spacing:1.5px}.brand2{font-size:16px;line-height:1.15;margin-bottom:10px}
+.brand{font-size:10px;letter-spacing:1.5px}.brand2{font-size:16px;line-height:1.15;margin-bottom:10px}
 #nav{scrollbar-width:none}#nav::-webkit-scrollbar{display:none}
 .nav{flex-direction:column;align-items:center;gap:3px;padding:9px 4px;font-size:11px;line-height:1.2;text-align:center;white-space:normal;word-break:break-word;border-left:0}.nav .nm{flex:none}.nav .nb{position:absolute;top:3px;right:6px;font-size:10px;padding:0 5px;min-width:16px}
 .ubox{margin-top:6px;padding:8px;font-size:11px;border-radius:10px}.ubox b{font-size:12px;margin:2px 0 5px;word-break:break-word}
@@ -106,10 +105,10 @@ td .btn{margin:2px 0 2px 6px}td input[type=text],td input:not([type]){max-width:
 }
 @media print{#side,.noprint,#toast,#modal{display:none!important}body{background:#fff}main{padding:0}#app{display:block}.card,.stat{break-inside:avoid;border-color:#ccc}}
 </style></head><body>
-<div id="auth" class="hide"><div id="abrand"><img class="alogo" src="/logo.jpg" alt="Campus Lost &amp; Found"><h1 class="sr">Campus Lost &amp; Found</h1><p>Report what you find. Claim what you lost.<br>Every claim is verified by an admin.</p>
+<div id="auth" class="hide"><div id="abrand"><div class="brand">CAMPUS</div><h1>Lost &amp; Found</h1><p>Report what you find. Claim what you lost.<br>Every claim is verified by an admin.</p>
 <ul><li>&bull;&nbsp; Students search items, report finds and lost belongings</li><li>&bull;&nbsp; Admins review claims and approve or reject them</li><li>&bull;&nbsp; Owners are checked by color, brand, marks and ID proof</li></ul></div>
 <div id="aright"><div class="card" id="acard"></div></div></div>
-<div id="app" class="hide"><aside id="side"><img class="slogo" src="/logo.jpg" alt="Campus Lost &amp; Found"><img class="semb" src="/emblem.png" alt="Campus Lost &amp; Found"><div class="brand sr">Campus</div><div class="brand2 sr">Lost &amp; Found</div><nav id="nav"></nav>
+<div id="app" class="hide"><aside id="side"><div class="brand">Campus</div><div class="brand2">Lost &amp; Found</div><nav id="nav"></nav>
 <div class="ubox">Signed in as<b id="uname"></b><span id="role" class="pill"></span></div></aside><main id="main"></main></div>
 <div id="modal" class="hide" onclick="if(event.target===this)closeModal()"><div id="mbox" class="mbox"><div id="mbody"></div></div></div>
 <div id="zoom" class="hide" onclick="this.classList.add('hide')"><img alt=""></div><div id="toast" class="hide"></div>
