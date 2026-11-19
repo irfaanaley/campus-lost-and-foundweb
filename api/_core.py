@@ -310,6 +310,7 @@ class H(http.server.BaseHTTPRequestHandler):
     # ---------- claims ----------
     def r_claims(self, m, P, b, u):
         if m == 'POST' and len(P) == 1:
+            if u['role'] != 'user': return self.out(403, {'error': 'Only student accounts can submit claims. Admins review them.'})
             it = one("SELECT * FROM items WHERE id=?", int(b.get('item_id') or 0))
             if not it: return self.out(404, {'error': 'No item found with this ID.'})
             if it['status'] != 'FOUND': return self.out(400, {'error': 'This item is no longer available.'})
@@ -339,6 +340,8 @@ class H(http.server.BaseHTTPRequestHandler):
         if P[2] == 'decide':
             if c['status'] != 'PENDING': return self.out(400, {'error': 'Already decided.'})
             if b.get('approve') and it['status'] != 'FOUND': return self.out(400, {'error': 'Item is not available.'})
+            if b.get('approve') and sum(fuzzy(c[x], it[x] or '') for x in ('color', 'brand', 'marks')) < 2:
+                return self.out(400, {'error': 'The answers do not match the finder\'s record, so this claim cannot be approved. Reject it instead.'})
             if b.get('approve'):
                 code = '%06d' % secrets.randbelow(10**6)
                 db.execute("UPDATE claims SET status='APPROVED',detail='Approved. Bring your original ID to the admin office and show the handover code.',code=?,decided=? WHERE id=?", (code, now(), c['id']))
